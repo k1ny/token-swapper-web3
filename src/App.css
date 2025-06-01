@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+:root {
+    margin: 0 auto;
+    font-family: "TT Firs Neue", sans-serif;
+}
+
+@theme {
+    --color-primary-foreground: #feefcd;
+    --color-primary: #773900;
+    --color-primary-foreground-dark: hsl(30, 100%, 23%, 0.1);
+    --color-custom-gray: #f5f5f5;
+    --color-dark-brown: #362a32;
+}
+
+@font-face {
+    font-family: "TT Firs Neue";
+    src: url("./fonts/TTFirsNeue-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+@font-face {
+    font-family: "TT Firs Neue";
+    src: url("./fonts/TTFirsNeue-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: bold;
+}
