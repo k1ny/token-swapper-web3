@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 
 type AccountContextType = {
-  address: string | null;
+  address: `0x${string}` | undefined;
   connector: object | null;
   isConnected: boolean;
   isDisconnected: boolean;
@@ -21,7 +21,7 @@ export const AccountProvider = ({
     useAccount();
 
   const [wallet, setWallet] = useState<AccountContextType>({
-    address: null,
+    address: undefined,
     connector: null,
     isConnected: false,
     isDisconnected: false,
@@ -31,7 +31,7 @@ export const AccountProvider = ({
 
   useEffect(() => {
     setWallet({
-      address: address || null,
+      address: address || undefined,
       connector: connector || null,
       isConnected,
       isDisconnected,

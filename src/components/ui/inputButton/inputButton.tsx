@@ -1,40 +1,64 @@
-import { useState, type ReactElement } from "react";
-import UsdtIcon from "../../assets/usdt-icon.svg?react";
-import UsdcIcon from "../../assets/usdc-icon.svg?react";
-import EthIcon from "../../assets/eth-icon.svg?react";
-import DropDownArrow from "../../assets/dropDownArrow.svg?react";
-import { Modal } from "./modal";
+import { useState } from "react";
+import UsdtIcon from "@/assets/usdt-icon.svg?react";
+import UsdcIcon from "@/assets/usdc-icon.svg?react";
+import EthIcon from "@/assets/eth-icon.svg?react";
+import DropDownArrow from "@/assets/dropDownArrow.svg?react";
+import { Modal } from "../modal";
+import type { CryptoToken } from "./types";
 
-const cryptos = [
-  { symbol: "USDT", label: "USDT", img: <UsdtIcon /> },
-  { symbol: "USDC", label: "USDC", img: <UsdcIcon /> },
-  { symbol: "ETH", label: "ETH", img: <EthIcon /> },
+export const ARBITRUM_TOKENS: CryptoToken[] = [
+  {
+    symbol: "USDT",
+    label: "USDT",
+    img: <UsdtIcon />,
+    contractAddress: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+    decimals: 6,
+  },
+  {
+    symbol: "USDC",
+    label: "USDC",
+    img: <UsdcIcon />,
+    contractAddress: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+    decimals: 6,
+  },
+  {
+    symbol: "ETH",
+    label: "ETH",
+    img: <EthIcon />,
+    contractAddress: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+    decimals: 18,
+    isNative: true,
+  },
 ];
 
-interface InputButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  disabled: boolean;
+interface InputButtonProps {
+  disabled?: boolean;
+  onSelect?: (crypto: CryptoToken) => void;
+  onAmountChange?: (amount: string) => void;
 }
 
 export const InputButton: React.FC<InputButtonProps> = ({
   disabled,
+  onSelect,
+  onAmountChange,
   ...rest
 }) => {
-  const [selectedCrypto, setSelectedCrypto] = useState<null | {
-    symbol: string;
-    label: string;
-    img: ReactElement;
-  }>(null);
+  const [selectedCrypto, setSelectedCrypto] = useState<CryptoToken | null>(
+    null,
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [amount, setAmount] = useState("");
 
-  const handleSelect = (crypto: {
-    symbol: string;
-    label: string;
-    img: ReactElement;
-  }) => {
+  const handleSelect = (crypto: CryptoToken) => {
     setSelectedCrypto(crypto);
     setModalOpen(false);
+    onSelect?.(crypto);
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setAmount(value);
+    onAmountChange?.(value);
   };
 
   return (
@@ -56,7 +80,7 @@ export const InputButton: React.FC<InputButtonProps> = ({
             disabled={disabled}
             type="number"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={handleAmountChange}
             placeholder="0.0"
             className="w-full px-6 py-7 bg-primary-foreground-dark rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
           />
@@ -76,7 +100,7 @@ export const InputButton: React.FC<InputButtonProps> = ({
       {modalOpen && (
         <Modal>
           <div className="bg-primary-foreground p-6 rounded-[40px] max-w-sm w-full space-y-4 border-4 border-dark-brown">
-            {cryptos.map((crypto) => (
+            {ARBITRUM_TOKENS.map((crypto) => (
               <button
                 key={crypto.symbol}
                 type="button"

@@ -11,7 +11,7 @@ import { Footer } from "./layouts/footer";
 
 const config = getDefaultConfig({
   appName: "noxlabs-test",
-  projectId: "test",
+  projectId: "7a2412d370fd4b198ab591e7b5af7d29",
   chains: [arbitrum],
 });
 
