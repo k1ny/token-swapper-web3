@@ -8,7 +8,6 @@ import { useSendTransaction, useWriteContract } from "wagmi";
 import { parseUnits, formatUnits } from "viem";
 import { erc20Abi } from "viem";
 
-// Constants
 const SQUID_ROUTER_ADDRESS = "0xce16F69375520ab01377ce7B88f5BA8C48F8D666";
 const NATIVE_TOKEN_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
@@ -22,7 +21,6 @@ export const ExchangeForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
 
-  // Get balance and allowance
   const { data: balance } = useTokenBalance(fromToken);
   const { data: allowance } = useTokenAllowance(
     fromToken,
@@ -36,14 +34,14 @@ export const ExchangeForm = () => {
   const isAllowable =
     allowance &&
     fromToken &&
-    (fromToken.isNative || parseUnits(amount || "0", fromToken.decimals) <= allowance);
+    (fromToken.isNative ||
+      parseUnits(amount || "0", fromToken.decimals) <= allowance);
 
   const isSufficientBalance =
     balance &&
     fromToken &&
     parseUnits(amount || "0", fromToken.decimals) <= balance.value;
 
-  // Get quote when parameters change
   useEffect(() => {
     if (fromToken && toToken && amount && address) {
       const fetchQuote = async () => {
@@ -55,9 +53,7 @@ export const ExchangeForm = () => {
             fromToken.isNative
               ? NATIVE_TOKEN_ADDRESS
               : fromToken.contractAddress,
-            toToken.isNative
-              ? NATIVE_TOKEN_ADDRESS
-              : toToken.contractAddress,
+            toToken.isNative ? NATIVE_TOKEN_ADDRESS : toToken.contractAddress,
             parseUnits(amount, fromToken.decimals).toString(),
             address,
           );
@@ -70,7 +66,9 @@ export const ExchangeForm = () => {
           setRequestId(quote.requestId);
         } catch (err) {
           console.error("Failed to fetch swap quote:", err);
-          setError(err instanceof Error ? err.message : "Failed to get swap quote");
+          setError(
+            err instanceof Error ? err.message : "Failed to get swap quote",
+          );
           setSwapQuote(null);
           setRequestId(null);
         } finally {
@@ -85,7 +83,6 @@ export const ExchangeForm = () => {
     }
   }, [fromToken, toToken, amount, address]);
 
-  // Handle swap
   const handleSwap = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -95,7 +92,6 @@ export const ExchangeForm = () => {
       setIsLoading(true);
       setError(null);
 
-      // If token is not native and needs approval
       if (!fromToken.isNative && !isAllowable) {
         await writeContract({
           address: fromToken.contractAddress as `0x${string}`,
@@ -108,16 +104,13 @@ export const ExchangeForm = () => {
         });
       }
 
-      // Execute swap
       if (fromToken.isNative) {
-        // For native tokens (ETH)
         await sendTransaction({
           to: swapQuote.transactionRequest.target as `0x${string}`,
           value: parseUnits(amount, fromToken.decimals),
           data: swapQuote.transactionRequest.data as `0x${string}`,
         });
       } else {
-        // For ERC-20 tokens
         await writeContract({
           address: swapQuote.transactionRequest.target as `0x${string}`,
           abi: swapQuote.transactionRequest.abi || erc20Abi,
@@ -127,11 +120,12 @@ export const ExchangeForm = () => {
         });
       }
 
-      // Successful swap
       console.log("Swap completed successfully");
     } catch (err) {
       console.error("Swap failed:", err);
-      setError(err instanceof Error ? err.message : "Swap failed. Please try again.");
+      setError(
+        err instanceof Error ? err.message : "Swap failed. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -159,7 +153,8 @@ export const ExchangeForm = () => {
           <label className="font-bold">To</label>
           {swapQuote && toToken && (
             <span className="text-sm">
-              Estimated: {formatUnits(BigInt(swapQuote.toAmount), toToken.decimals)}
+              Estimated:{" "}
+              {formatUnits(BigInt(swapQuote.toAmount), toToken.decimals)}
             </span>
           )}
         </div>
@@ -189,10 +184,10 @@ export const ExchangeForm = () => {
             {isLoading
               ? "Processing..."
               : !isSufficientBalance
-              ? "Insufficient Balance"
-              : !isAllowable
-              ? "Approve"
-              : "Swap"}
+                ? "Insufficient Balance"
+                : !isAllowable
+                  ? "Approve"
+                  : "Swap"}
           </button>
         </div>
       )}

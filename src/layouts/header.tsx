@@ -1,5 +1,5 @@
 import { CustomConnectButton } from "../components/customConnectButton";
-import Logo from "../assets/piratebay-logo.svg?react";
+import Logo from "@/assets/Logo-pirate.svg?react";
 
 export const Header = () => {
   return (
