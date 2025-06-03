@@ -5,13 +5,19 @@ import svgr from "vite-plugin-svgr";
 import path from "path";
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), svgr()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    svgr({
+      include: "**/*.svg?react",
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
     },
   },
-  base: "token-swapper-web3",
+  base: "/token-swapper-web3/",
   optimizeDeps: {
     include: ["@0xsquid/sdk", "ethers", "viem"],
   },

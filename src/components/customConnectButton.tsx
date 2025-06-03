@@ -1,5 +1,5 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import DropDownArrow from "../assets/dropDownArrow.svg?react";
+import DropDownArrow from "@/assets/dropDownArrow.svg?react";
 import { useAccountStore } from "../contexts/accountContext";
 
 export const CustomConnectButton = () => {

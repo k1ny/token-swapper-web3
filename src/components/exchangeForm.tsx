@@ -8,7 +8,6 @@ import { useSendTransaction, useWriteContract } from "wagmi";
 import { parseUnits, formatUnits } from "viem";
 import { erc20Abi } from "viem";
 
-const SQUID_ROUTER_ADDRESS = "0xce16F69375520ab01377ce7B88f5BA8C48F8D666";
 const NATIVE_TOKEN_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 export const ExchangeForm = () => {
@@ -21,16 +20,17 @@ export const ExchangeForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
 
+  console.log(requestId);
+
   const { data: balance } = useTokenBalance(fromToken);
   const { data: allowance } = useTokenAllowance(
     fromToken,
-    SQUID_ROUTER_ADDRESS as `0x${string}`,
+    address as `0x${string}`,
   );
 
   const { sendTransaction } = useSendTransaction();
   const { writeContract } = useWriteContract();
 
-  // Check conditions for swap
   const isAllowable =
     allowance &&
     fromToken &&
@@ -98,7 +98,7 @@ export const ExchangeForm = () => {
           abi: erc20Abi,
           functionName: "approve",
           args: [
-            SQUID_ROUTER_ADDRESS as `0x${string}`,
+            swapQuote.transactionRequest.target as `0x${string}`,
             parseUnits(amount, fromToken.decimals),
           ],
         });

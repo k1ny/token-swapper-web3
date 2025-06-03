@@ -1,9 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, type Connector } from "wagmi";
 
 type AccountContextType = {
   address: `0x${string}` | undefined;
-  connector: object | null;
+  connector: Connector | null;
   isConnected: boolean;
   isDisconnected: boolean;
   status: string | null;

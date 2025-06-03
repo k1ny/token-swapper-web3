@@ -1,7 +1,5 @@
 import axios from "axios";
 
-const INTEGRATOR_ID =  "noxlabs-test";
-
 export const getSwapQuote = async (
   fromToken: string,
   toToken: string,
@@ -24,10 +22,10 @@ export const getSwapQuote = async (
       },
       {
         headers: {
-          "x-integrator-id": INTEGRATOR_ID,
+          "x-integrator-id": "test-e353013d-ffaa-45c5-b898-31e6a5e7e024",
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.data || !response.data.route) {
@@ -41,7 +39,9 @@ export const getSwapQuote = async (
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 404) {
-        throw new Error("Route not found. Please try different tokens or amount.");
+        throw new Error(
+          "Route not found. Please try different tokens or amount.",
+        );
       }
       throw new Error(error.response?.data?.message || error.message);
     }
