@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAccountStore } from "../contexts/accountContext";
 import { InputButton } from "./ui/inputButton/inputButton";
 import type { CryptoToken } from "./ui/inputButton/types";
@@ -8,10 +8,8 @@ import { useSendTransaction, useWriteContract } from "wagmi";
 import { parseUnits, formatUnits } from "viem";
 import { erc20Abi } from "viem";
 
-const NATIVE_TOKEN_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
-
 export const ExchangeForm = () => {
-  const { address } = useAccountStore();
+  const { address, chain } = useAccountStore();
   const [fromToken, setFromToken] = useState<CryptoToken | null>(null);
   const [toToken, setToToken] = useState<CryptoToken | null>(null);
   const [amount, setAmount] = useState("");
@@ -19,28 +17,33 @@ export const ExchangeForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
-
-  console.log(requestId);
+  console.log(fromToken);
+  console.log(toToken);
 
   const { data: balance } = useTokenBalance(fromToken);
+  console.log(balance, "balance");
   const { data: allowance } = useTokenAllowance(
     fromToken,
     address as `0x${string}`,
   );
-
+  console.log(allowance, "allowance");
   const { sendTransaction } = useSendTransaction();
   const { writeContract } = useWriteContract();
+  console.log(chain, "chain");
+
+  const parsedAmount = useMemo(() => {
+    try {
+      return fromToken ? parseUnits(amount || "0", fromToken.decimals) : 0n;
+    } catch {
+      return 0n;
+    }
+  }, [amount, fromToken]);
 
   const isAllowable =
-    allowance &&
-    fromToken &&
-    (fromToken.isNative ||
-      parseUnits(amount || "0", fromToken.decimals) <= allowance);
+    allowance && fromToken && (fromToken.isNative || parsedAmount <= allowance);
 
   const isSufficientBalance =
-    balance &&
-    fromToken &&
-    parseUnits(amount || "0", fromToken.decimals) <= balance.value;
+    balance && fromToken && parsedAmount <= balance.value;
 
   useEffect(() => {
     if (fromToken && toToken && amount && address) {
@@ -50,14 +53,13 @@ export const ExchangeForm = () => {
           setError(null);
 
           const quote = await getSwapQuote(
-            fromToken.isNative
-              ? NATIVE_TOKEN_ADDRESS
-              : fromToken.contractAddress,
-            toToken.isNative ? NATIVE_TOKEN_ADDRESS : toToken.contractAddress,
-            parseUnits(amount, fromToken.decimals).toString(),
+            fromToken?.contractAddress,
+            toToken?.contractAddress,
+            parsedAmount.toString(),
             address,
           );
-
+          console.log("QUOTE RESPONSE", quote);
+          console.log("QUOTE ROUTE", quote.route);
           if (!quote || !quote.route) {
             throw new Error("Invalid route response from Squid API");
           }
@@ -81,12 +83,18 @@ export const ExchangeForm = () => {
       setSwapQuote(null);
       setRequestId(null);
     }
-  }, [fromToken, toToken, amount, address]);
+  }, [fromToken, toToken, parsedAmount, address]);
 
   const handleSwap = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!fromToken || !toToken || !amount || !address || !swapQuote) return;
+
+    const tx = swapQuote.transactionRequest;
+    if (!tx || !tx.target || !tx.data) {
+      setError("Invalid transaction data from Squid");
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -97,26 +105,23 @@ export const ExchangeForm = () => {
           address: fromToken.contractAddress as `0x${string}`,
           abi: erc20Abi,
           functionName: "approve",
-          args: [
-            swapQuote.transactionRequest.target as `0x${string}`,
-            parseUnits(amount, fromToken.decimals),
-          ],
+          args: [tx.target as `0x${string}`, parsedAmount],
         });
       }
 
       if (fromToken.isNative) {
         await sendTransaction({
-          to: swapQuote.transactionRequest.target as `0x${string}`,
-          value: parseUnits(amount, fromToken.decimals),
-          data: swapQuote.transactionRequest.data as `0x${string}`,
+          to: tx.target as `0x${string}`,
+          value: parsedAmount,
+          data: tx.data as `0x${string}`,
         });
       } else {
         await writeContract({
-          address: swapQuote.transactionRequest.target as `0x${string}`,
-          abi: swapQuote.transactionRequest.abi || erc20Abi,
-          functionName: swapQuote.transactionRequest.functionName,
-          args: swapQuote.transactionRequest.params,
-          value: swapQuote.transactionRequest.value || 0n,
+          address: tx.target as `0x${string}`,
+          abi: tx.abi || erc20Abi,
+          functionName: tx.functionName,
+          args: tx.params,
+          value: tx.value || 0n,
         });
       }
 
@@ -151,7 +156,7 @@ export const ExchangeForm = () => {
       <div className="w-full flex flex-col gap-8 px-6">
         <div className="flex justify-between items-center">
           <label className="font-bold">To</label>
-          {swapQuote && toToken && (
+          {swapQuote && toToken && swapQuote.toAmount && (
             <span className="text-sm">
               Estimated:{" "}
               {formatUnits(BigInt(swapQuote.toAmount), toToken.decimals)}
@@ -173,12 +178,7 @@ export const ExchangeForm = () => {
             type="submit"
             className="bg-primary text-white px-6 py-3 rounded-xl mt-4 w-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
             disabled={
-              !fromToken ||
-              !toToken ||
-              !amount ||
-              isLoading ||
-              !isSufficientBalance ||
-              !swapQuote
+              !amount || isLoading || !isSufficientBalance || !swapQuote
             }
           >
             {isLoading

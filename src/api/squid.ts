@@ -10,15 +10,18 @@ export const getSwapQuote = async (
     const response = await axios.post(
       "https://v2.api.squidrouter.com/v2/route",
       {
-        fromChain: "arbitrum",
-        toChain: "arbitrum",
-        fromToken,
-        toToken,
+        fromChain: "42161",
+        toChain: "42161",
+        fromToken: fromToken,
+        toToken: toToken,
         fromAmount: amount,
         fromAddress: address,
         toAddress: address,
-        slippage: 1, // 1% slippage
         enableBoost: true,
+        slippage: 1,
+        slippageConfig: {
+          autoMode: 1,
+        },
       },
       {
         headers: {

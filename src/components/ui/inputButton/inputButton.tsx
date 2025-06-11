@@ -13,6 +13,7 @@ export const ARBITRUM_TOKENS: CryptoToken[] = [
     img: <UsdtIcon />,
     contractAddress: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
     decimals: 6,
+    isNative: false, // ✅ Добавлено
   },
   {
     symbol: "USDC",
@@ -20,6 +21,7 @@ export const ARBITRUM_TOKENS: CryptoToken[] = [
     img: <UsdcIcon />,
     contractAddress: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
     decimals: 6,
+    isNative: false, // ✅ Добавлено
   },
   {
     symbol: "ETH",

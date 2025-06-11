@@ -7,4 +7,5 @@ export interface CryptoToken {
   contractAddress: `0x${string}`;
   decimals: number;
   isNative?: boolean;
+  isEvmos?: boolean;
 }
